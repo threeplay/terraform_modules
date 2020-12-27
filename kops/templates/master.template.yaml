@@ -1,0 +1,19 @@
+---
+apiVersion: kops.k8s.io/v1alpha2
+kind: InstanceGroup
+metadata:
+  creationTimestamp: null
+  labels:
+    kops.k8s.io/cluster: ${ full_cluster_domain }
+  name: master-${ subnet }
+spec:
+  machineType: ${ machine_type }
+  maxSize: 1
+  minSize: 1
+  nodeLabels:
+    kops.k8s.io/instancegroup: master-${ subnet }
+  role: Master
+  rootVolumeSize: 128
+  rootVolumeType: gp2
+  subnets:
+  - ${ subnet }

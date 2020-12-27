@@ -1,0 +1,85 @@
+apiVersion: kops.k8s.io/v1alpha2
+kind: Cluster
+metadata:
+  creationTimestamp: null
+  name: ${ full_cluster_domain }
+spec:
+  api:
+    dns: {}
+  authorization:
+    rbac: {}
+  channel: stable
+  cloudProvider: aws
+  configBase: ${ cluster_store }
+  etcdClusters:
+  - cpuRequest: 200m
+    etcdMembers:
+%{ for master_subnet in master_subnets ~}
+    - instanceGroup: master-${master_subnet}
+      name: a
+      volumeSize: 5
+%{ endfor ~}
+    memoryRequest: 100Mi
+    name: main
+  - cpuRequest: 100m
+    etcdMembers:
+%{ for master_subnet in master_subnets ~}
+    - instanceGroup: master-${master_subnet}
+      name: a
+      volumeSize: 5
+%{ endfor ~}
+    memoryRequest: 100Mi
+    name: events
+  iam:
+    allowContainerRegistry: true
+    legacy: false
+  kubelet:
+    anonymousAuth: false
+  kubernetesApiAccess:
+  - 0.0.0.0/0
+  kubernetesVersion: ${ k8s_version }
+  masterPublicName: ${ master_public_domain }
+  DNSZone: ${ dns_zone_id }
+  networkCIDR: ${ vpc_cidr }
+  networkID: ${ vpc_id }
+  networking:
+    kubenet: {}
+  nonMasqueradeCIDR: 100.64.0.0/10
+  sshAccess:
+  - 0.0.0.0/0
+  subnets:
+%{ for name, subnet in public_subnets ~}
+  - cidr: ${ subnet.cidr }
+    name: ${ name }
+    type: Public
+    zone: ${ subnet.zone }
+    id: ${ subnet.subnet_id }
+%{ endfor ~}
+%{ for name, subnet in utility_subnets ~}
+  - cidr: ${ subnet.cidr }
+    name: ${ name }
+    type: Utility
+    zone: ${ subnet.zone }
+    id: ${ subnet.subnet_id }
+%{ endfor ~}
+%{ for name, subnet in private_subnets ~}
+  - cidr: ${ subnet.cidr }
+    name: ${ name }
+    type: Private
+    zone: ${ subnet.zone }
+    id: ${ subnet.subnet_id }
+    egress: ${ subnet.egress_id }
+%{ endfor ~}
+  topology:
+    dns:
+      type: Private
+    masters: private
+    nodes: private
+---
+apiVersion: kops.k8s.io/v1alpha2
+kind: SSHCredential
+metadata:
+  labels:
+    kops.k8s.io/cluster: ${ full_cluster_domain }
+spec:
+  publicKey: ${ sshpublickey }
