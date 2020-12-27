@@ -1,0 +1,23 @@
+---
+apiVersion: kops.k8s.io/v1alpha2
+kind: InstanceGroup
+metadata:
+  creationTimestamp: null
+  labels:
+    kops.k8s.io/cluster: ${ full_cluster_domain }
+  name: ${ node_group }
+spec:
+  machineType: ${ node.type }
+  maxSize: ${ node.max_count }
+  minSize: ${ node.min_count }
+  nodeLabels:
+    kops.k8s.io/instancegroup: ${ node_group }
+    managed: terraform
+  role: Node
+  rootVolumeSize: 32
+  rootVolumeType: gp2
+  subnets:
+%{ for subnet in node.subnets ~}
+    - ${ subnet }
+%{ endfor ~}
+
